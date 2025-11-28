@@ -1,0 +1,11 @@
+n,m,algo,time_s,found,path_len
+6,5,backtracking,0.00017,0,0
+6,5,held_karp,5e-05,0,0
+8,11,backtracking,8e-05,1,8
+8,11,held_karp,0.00035,1,8
+10,19,backtracking,5e-05,1,10
+10,19,held_karp,0.0016,1,10
+12,31,backtracking,1e-05,1,12
+12,31,held_karp,0.01573,1,12
+14,30,backtracking,0.06319,1,14
+14,30,held_karp,0.0293,1,14
