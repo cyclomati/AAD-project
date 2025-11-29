@@ -21,6 +21,16 @@ def backtracking_path(g: Graph) -> Tuple[bool, List[int]]:
         return True, []
 
     def dfs(v: int, visited: Set[int], path: List[int]) -> Optional[List[int]]:
+        """
+        Extend a partial Hamiltonian path via DFS.
+
+        Args:
+            v: Current vertex.
+            visited: Set of vertices already on the path.
+            path: Current path prefix.
+        Returns:
+            Complete path list when all vertices are visited, otherwise None.
+        """
         if len(path) == n:
             return path.copy()
         for nbr in g.get(v, []):
@@ -60,7 +70,7 @@ def held_karp_path(g: Graph) -> Tuple[bool, List[int]]:
 
     idx = {v: i for i, v in enumerate(nodes)}
     size = 1 << n
-    # dp[mask][j] = predecessor index for a path covering mask and ending at j; None = unreachable.
+    # dp[mask][j] = predecessor index for a path covering mask and ending at j; None = unreachable. 
     dp: List[List[Optional[int]]] = [[None for _ in range(n)] for _ in range(size)]
 
     for i in range(n):

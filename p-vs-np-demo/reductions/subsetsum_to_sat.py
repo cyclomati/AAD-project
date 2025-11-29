@@ -36,7 +36,16 @@ def exactly_equal_sum_parity(nums: List[int], target: int) -> Tuple[int, list, s
     clauses = []
 
     def xor2(a, b, out):
-        # out = a ⊕ b
+        """
+        Encode a 2-input XOR gate into CNF.
+
+        Args:
+            a: Variable id for the first input.
+            b: Variable id for the second input.
+            out: Variable id that should equal a ⊕ b.
+        Returns:
+            None; clauses are appended in-place to the surrounding `clauses` list.
+        """
         clauses.extend([[-a, -b, -out], [a, b, -out], [a, -b, out], [-a, b, out]])
 
     for k in range(width):

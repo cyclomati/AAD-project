@@ -88,6 +88,19 @@ building solvers, reductions, and reductions-driven applications from scratch.
    Proofs guarantee a solution of size \(\le 2 \cdot OPT\). Runtime is
    \(O(n + m)\) because each edge is removed once.
 
+### 2.4 Hamiltonian Path
+1. **DFS Backtracking**  
+   Depth-first search that grows a path, marking visited vertices and backtracking
+   when stuck. Complexity is \(O(n!)\) in the worst case because it can enumerate
+   all permutations of vertices. Space is \(O(n)\) for the recursion stack and
+   visited set.
+
+2. **Held–Karp Dynamic Programming**  
+   Classic subset DP where `dp[mask][j]` tracks whether there is a path covering
+   vertex subset `mask` and ending at vertex `j`. Complexity is
+   \(O(n^2 2^n)\) time and \(O(n 2^n)\) space; practical only for small \(n\)
+   but much faster than naive permutation search on those sizes.
+
 ---
 
 ## 3. Implementation Details
@@ -175,6 +188,16 @@ minisat_files/sudoku.cnf` writes the DIMACS file solved both by my DPLL solver
 model matches the assignment produced by my solver, demonstrating the soundness
 of the encoding and providing a real-world puzzle application. The generated
 MiniSat output is stored in `minisat_files/sudoku.out` for reference.
+
+### 5.6 Hamiltonian Path
+`data/hampath_runtime.csv` logs runtimes for both algorithms on random graphs
+with \(n = 6..14\). Held–Karp is slightly faster on the tiny \(n=6\) case
+(0.00005 s vs. 0.00017 s) but slows relative to backtracking at \(n=8\) and
+especially \(n=12\) (0.01573 s vs. 0.00001 s) because it enumerates every subset.
+At \(n=14\) the DP reclaims a lead (0.0293 s vs. 0.06319 s), illustrating how
+backtracking performance is highly instance-dependent while DP grows
+monotonically with \(2^n\). The plot `data/plot_hampath_runtime.png` captures
+this crossover and the shared exponential wall.
 
 ---
 

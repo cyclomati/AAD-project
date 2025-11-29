@@ -103,6 +103,12 @@ def bench_vertex_cover():
 def _random_graph(n: int, edge_prob: float = 0.35):
     """
     Generate an undirected graph with edges sampled independently.
+
+    Args:
+        n: Number of vertices (labeled 1..n).
+        edge_prob: Probability of including each possible edge.
+    Returns:
+        Graph adjacency dict suitable for the Hamiltonian Path solvers.
     """
     g = {}
     for u in range(1, n + 1):
