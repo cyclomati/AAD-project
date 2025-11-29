@@ -1,7 +1,8 @@
 """
 Demo encoding: Subset Sum -> SAT for small instances.
 We encode selection bits b_i and constrain sum == T using parity-style constraints.
-This is a minimal didactic encoding suitable for tiny demos, not industrial scale.
+Carries between bits are not modeled, so this is illustrative (parity-correct) but
+not a full many-one reduction; suitable only for tiny demos, not industrial scale.
 """
 from typing import List, Tuple
 from utils.dimacs import write_dimacs

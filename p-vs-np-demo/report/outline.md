@@ -179,6 +179,9 @@ The 3-SAT → Vertex Cover reduction produces graphs with \(2n + 3m\) vertices; 
 generated instances were fed back into the exact/approx VC solvers to validate
 their correctness. Similarly, Subset Sum instances reduced to SAT via the parity
 encoding were solved with the DPLL implementation, closing the reductions loop.
+The Subset Sum encoding is parity-correct but does not model carries, so it is a
+didactic toy rather than a fully faithful many-one reduction; this limitation is
+called out explicitly in the demo and documentation.
 
 ### 5.5 Bonus: Sudoku → SAT + MiniSat
 `bonus/sudoku_sat.py` encodes 4×4 Sudoku grids into 256-variable CNFs. Running

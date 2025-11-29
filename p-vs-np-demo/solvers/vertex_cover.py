@@ -53,17 +53,18 @@ def exact_branching(g: Graph, k: int) -> Tuple[bool, List[int]]:
     """
     Exponential branching algorithm deciding if there is a vertex cover of size ≤ k.
 
-    Args:
-        g: Graph adjacency dict.
-        k: Target cover size.
-    Returns:
-        Tuple (exists_cover, cover_vertices) with cover_vertices possibly empty when unsatisfied.
+    The recursion aborts immediately once k < 0, so any successful result
+    satisfies len(cover) ≤ the original k budget.
     """
+    if k < 0:
+        # We have already picked more than k vertices
+        return False, []
+
     e = any_edge(g)
     if e is None:
+        # No edges left, current choice of vertices is a valid cover within k
         return True, []
-    if k < 0:
-        return False, []
+
     u, v = e
     sat, cover = exact_branching(remove_vertex(g, u), k - 1)
     if sat:

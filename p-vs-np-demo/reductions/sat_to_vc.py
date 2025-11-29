@@ -15,6 +15,8 @@ def reduce_3sat_to_vc(n_vars: int, clauses: List[List[int]]):
         clauses: List of clauses containing integer literals (size ≤ 3).
     Returns:
         Tuple (graph, k) where graph is an adjacency dict and k is the cover size threshold.
+        Standard construction: each variable pair forces picking 1 node, and each
+        clause triangle forces picking 2 nodes, yielding k = n_vars + 2*|clauses|.
     """
     g: Dict[int, Set[int]] = {}
     node_id = 1

@@ -4,6 +4,7 @@ Run:
   python -m bench.run
 """
 import time, random, csv, os
+random.seed(0)
 from typing import List
 from solvers.sat import dpll_solve
 from solvers.subsetsum import brute_force, meet_in_the_middle
@@ -61,11 +62,17 @@ def bench_subsetsum():
     path = os.path.join(DATA_DIR, "subsetsum_runtime.csv")
     with open(path, "w", newline="") as f:
         w = csv.writer(f); w.writerow(["n", "algo", "time_s"])
-        for n in range(10, 37, 2):
+        # Brute force to 26 to avoid pathological 2^n blowups; MITM continues higher.
+        for n in range(10, 27, 2):
             nums = [random.randint(1, 1000) for _ in range(n)]
             target = sum(nums[: n // 3])
             t0 = time.time(); brute_force(nums, target); dt = time.time() - t0
             w.writerow([n, "brute", round(dt, 5)])
+            t0 = time.time(); meet_in_the_middle(nums, target); dt = time.time() - t0
+            w.writerow([n, "mitm", round(dt, 5)])
+        for n in range(28, 37, 2):
+            nums = [random.randint(1, 1000) for _ in range(n)]
+            target = sum(nums[: n // 3])
             t0 = time.time(); meet_in_the_middle(nums, target); dt = time.time() - t0
             w.writerow([n, "mitm", round(dt, 5)])
     return path
