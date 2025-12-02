@@ -39,11 +39,11 @@ def reduce_3sat_to_vc(n_vars: int, clauses: List[List[int]]):
         add_edge(g, ids[0], ids[1]); add_edge(g, ids[1], ids[2]); add_edge(g, ids[0], ids[2])
         clause_nodes.append((ids, c))
 
-    # Connect clause literal nodes to the opposite variable node
+    # Connect clause literal nodes to the corresponding variable node (same literal)
     for ids, lits in clause_nodes:
         for nid, lit in zip(ids, lits):
             v = abs(lit); is_pos = (lit > 0)
-            target = var_node_neg[v] if is_pos else var_node_pos[v]
+            target = var_node_pos[v] if is_pos else var_node_neg[v]
             add_edge(g, nid, target)
 
     # k = (#variables) + 2*(#clauses)

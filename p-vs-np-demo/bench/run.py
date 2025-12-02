@@ -10,6 +10,7 @@ from solvers.sat import dpll_solve
 from solvers.subsetsum import brute_force, meet_in_the_middle
 from solvers.vertex_cover import exact_branching, approx_2, add_edge
 from solvers import hampath
+from utils.checks import check_sat, check_subset_sum, check_vertex_cover, check_hamiltonian_path
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -49,6 +50,8 @@ def bench_sat():
             t0 = time.time()
             sat, model, nodes = dpll_solve(n, clauses)
             dt = time.time() - t0
+            if sat:
+                check_sat(clauses, model)
             w.writerow([n, n * 4, round(dt, 5), nodes, int(sat)])
     return path
 
@@ -61,20 +64,26 @@ def bench_subsetsum():
     """
     path = os.path.join(DATA_DIR, "subsetsum_runtime.csv")
     with open(path, "w", newline="") as f:
-        w = csv.writer(f); w.writerow(["n", "algo", "time_s"])
+        w = csv.writer(f); w.writerow(["n", "algo", "time_s", "explored", "found"])
         # Brute force to 26 to avoid pathological 2^n blowups; MITM continues higher.
         for n in range(10, 27, 2):
             nums = [random.randint(1, 1000) for _ in range(n)]
             target = sum(nums[: n // 3])
-            t0 = time.time(); brute_force(nums, target); dt = time.time() - t0
-            w.writerow([n, "brute", round(dt, 5)])
-            t0 = time.time(); meet_in_the_middle(nums, target); dt = time.time() - t0
-            w.writerow([n, "mitm", round(dt, 5)])
+            t0 = time.time(); found_b, subset_b, explored_b = brute_force(nums, target, track_count=True, validate=True); dt = time.time() - t0
+            if found_b:
+                check_subset_sum(subset_b, target)
+            w.writerow([n, "brute", round(dt, 5), explored_b, int(found_b)])
+            t0 = time.time(); found_m, subset_m, explored_m = meet_in_the_middle(nums, target, track_count=True, validate=True); dt = time.time() - t0
+            if found_m:
+                check_subset_sum(subset_m, target)
+            w.writerow([n, "mitm", round(dt, 5), explored_m, int(found_m)])
         for n in range(28, 37, 2):
             nums = [random.randint(1, 1000) for _ in range(n)]
             target = sum(nums[: n // 3])
-            t0 = time.time(); meet_in_the_middle(nums, target); dt = time.time() - t0
-            w.writerow([n, "mitm", round(dt, 5)])
+            t0 = time.time(); found_m, subset_m, explored_m = meet_in_the_middle(nums, target, track_count=True, validate=True); dt = time.time() - t0
+            if found_m:
+                check_subset_sum(subset_m, target)
+            w.writerow([n, "mitm", round(dt, 5), explored_m, int(found_m)])
     return path
 
 def bench_vertex_cover():
@@ -86,7 +95,7 @@ def bench_vertex_cover():
     """
     path = os.path.join(DATA_DIR, "vertexcover_runtime.csv")
     with open(path, "w", newline="") as f:
-        w = csv.writer(f); w.writerow(["n", "m", "k", "algo", "time_s", "cover_size"])
+        w = csv.writer(f); w.writerow(["n", "m", "k", "algo", "time_s", "cover_size", "nodes"])
         for n in range(6, 15):
             g = {}
             edges = set()
@@ -101,10 +110,13 @@ def bench_vertex_cover():
             for (u, v) in edges:
                 add_edge(g, u, v)
             k = n // 2
-            t0 = time.time(); sat, cover = exact_branching(g, k); dt = time.time() - t0
-            w.writerow([n, len(edges), k, "exact", round(dt, 5), len(cover) if sat else -1])
+            t0 = time.time(); sat, cover, nodes = exact_branching(g, k, track_count=True); dt = time.time() - t0
+            if sat:
+                check_vertex_cover(g, cover)
+            w.writerow([n, len(edges), k, "exact", round(dt, 5), len(cover) if sat else -1, nodes])
             t0 = time.time(); cover2 = approx_2(g); dt = time.time() - t0
-            w.writerow([n, len(edges), k, "approx", round(dt, 5), len(cover2)])
+            check_vertex_cover(g, cover2)
+            w.writerow([n, len(edges), k, "approx", round(dt, 5), len(cover2), 0])
     return path
 
 def _random_graph(n: int, edge_prob: float = 0.35):
@@ -133,14 +145,18 @@ def bench_hampath():
     """
     path = os.path.join(DATA_DIR, "hampath_runtime.csv")
     with open(path, "w", newline="") as f:
-        w = csv.writer(f); w.writerow(["n", "m", "algo", "time_s", "found", "path_len"])
+        w = csv.writer(f); w.writerow(["n", "m", "algo", "time_s", "found", "path_len", "nodes"])
         for n in range(6, 15, 2):
             g = _random_graph(n, edge_prob=0.4)
             m = sum(len(nbrs) for nbrs in g.values()) // 2
-            t0 = time.time(); found_bt, path_bt = hampath.backtracking_path(g); dt = time.time() - t0
-            w.writerow([n, m, "backtracking", round(dt, 5), int(found_bt), len(path_bt)])
-            t0 = time.time(); found_dp, path_dp = hampath.held_karp_path(g); dt = time.time() - t0
-            w.writerow([n, m, "held_karp", round(dt, 5), int(found_dp), len(path_dp)])
+            t0 = time.time(); found_bt, path_bt, nodes_bt = hampath.backtracking_path(g, track_count=True); dt = time.time() - t0
+            if found_bt:
+                check_hamiltonian_path(g, path_bt)
+            w.writerow([n, m, "backtracking", round(dt, 5), int(found_bt), len(path_bt), nodes_bt])
+            t0 = time.time(); found_dp, path_dp, nodes_dp = hampath.held_karp_path(g, track_count=True); dt = time.time() - t0
+            if found_dp:
+                check_hamiltonian_path(g, path_dp)
+            w.writerow([n, m, "held_karp", round(dt, 5), int(found_dp), len(path_dp), nodes_dp])
     return path
 
 if __name__ == "__main__":

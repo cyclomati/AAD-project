@@ -6,7 +6,7 @@ from typing import Dict, Set, List, Tuple, Optional
 
 Graph = Dict[int, Set[int]]
 
-def backtracking_path(g: Graph) -> Tuple[bool, List[int]]:
+def backtracking_path(g: Graph, track_count: bool = False) -> Tuple[bool, List[int]] | Tuple[bool, List[int], int]:
     """
     Try to find a Hamiltonian path via DFS backtracking.
 
@@ -20,7 +20,11 @@ def backtracking_path(g: Graph) -> Tuple[bool, List[int]]:
     if n == 0:
         return True, []
 
+    count = 0
+
     def dfs(v: int, visited: Set[int], path: List[int]) -> Optional[List[int]]:
+        nonlocal count
+        count += 1
         """
         Extend a partial Hamiltonian path via DFS.
 
@@ -49,10 +53,10 @@ def backtracking_path(g: Graph) -> Tuple[bool, List[int]]:
         visited = {start}
         res = dfs(start, visited, [start])
         if res:
-            return True, res
-    return False, []
+            return (True, res, count) if track_count else (True, res)
+    return (False, [], count) if track_count else (False, [])
 
-def held_karp_path(g: Graph) -> Tuple[bool, List[int]]:
+def held_karp_path(g: Graph, track_count: bool = False) -> Tuple[bool, List[int]] | Tuple[bool, List[int], int]:
     """
     Held-Karp dynamic programming for Hamiltonian Path on small graphs.
 
@@ -72,6 +76,7 @@ def held_karp_path(g: Graph) -> Tuple[bool, List[int]]:
     size = 1 << n
     # dp[mask][j] = predecessor index for a path covering mask and ending at j; None = unreachable. 
     dp: List[List[Optional[int]]] = [[None for _ in range(n)] for _ in range(size)]
+    transitions = 0
 
     for i in range(n):
         dp[1 << i][i] = -1  # start at node i
@@ -86,13 +91,14 @@ def held_karp_path(g: Graph) -> Tuple[bool, List[int]]:
                 if k is None or (mask & (1 << k)):
                     continue
                 new_mask = mask | (1 << k)
+                transitions += 1
                 if dp[new_mask][k] is None:
                     dp[new_mask][k] = j
 
     full = (1 << n) - 1
     end = next((j for j in range(n) if dp[full][j] is not None), None)
     if end is None:
-        return False, []
+        return (False, [], transitions) if track_count else (False, [])
 
     # Reconstruct path by walking predecessors backward.
     path_idx = []
@@ -104,4 +110,4 @@ def held_karp_path(g: Graph) -> Tuple[bool, List[int]]:
         cur = prev
     path_idx.reverse()
     path = [nodes[i] for i in path_idx]
-    return True, path
+    return (True, path, transitions) if track_count else (True, path)

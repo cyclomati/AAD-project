@@ -49,30 +49,34 @@ def remove_vertex(g: Graph, u: int) -> Graph:
     g2.pop(u, None)
     return g2
 
-def exact_branching(g: Graph, k: int) -> Tuple[bool, List[int]]:
+def exact_branching(g: Graph, k: int, track_count: bool = False) -> Tuple[bool, List[int]] | Tuple[bool, List[int], int]:
     """
     Exponential branching algorithm deciding if there is a vertex cover of size ≤ k.
 
     The recursion aborts immediately once k < 0, so any successful result
     satisfies len(cover) ≤ the original k budget.
     """
-    if k < 0:
-        # We have already picked more than k vertices
-        return False, []
+    count = 0
 
-    e = any_edge(g)
-    if e is None:
-        # No edges left, current choice of vertices is a valid cover within k
-        return True, []
+    def rec(graph: Graph, remaining: int) -> Tuple[bool, List[int], int]:
+        nonlocal count
+        count += 1
+        if remaining < 0:
+            return False, [], count
+        e = any_edge(graph)
+        if e is None:
+            return True, [], count
+        u, v = e
+        sat, cover, _ = rec(remove_vertex(graph, u), remaining - 1)
+        if sat:
+            return True, cover + [u], count
+        sat, cover, _ = rec(remove_vertex(graph, v), remaining - 1)
+        if sat:
+            return True, cover + [v], count
+        return False, [], count
 
-    u, v = e
-    sat, cover = exact_branching(remove_vertex(g, u), k - 1)
-    if sat:
-        return True, cover + [u]
-    sat, cover = exact_branching(remove_vertex(g, v), k - 1)
-    if sat:
-        return True, cover + [v]
-    return False, []
+    sat, cover, count = rec(g, k)
+    return (sat, cover, count) if track_count else (sat, cover)
 
 def approx_2(g: Graph) -> List[int]:
     """
